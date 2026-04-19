@@ -1,6 +1,6 @@
 # Payment Gateway
 
-A .NET 9 API that acts as a payment gateway, allowing merchants to process card payments and retrieve payment details via an issuing bank simulator.
+A .NET 9 API that acts as a payment gateway, allowing merchants to process card payments and retrieve payment details via an acquiring bank simulator.
 
 ---
 
@@ -190,26 +190,21 @@ dotnet test test/PaymentGateway.IntegrationTests
 
 ### End-to-End Tests (Postman / Newman)
 
-The e2e tests use Newman (Postman's CLI runner) against the full running stack.
+The e2e tests run via a dedicated Newman container — no local Newman installation required. The full stack must be running first.
 
-**1. Install Newman:**
-
-```bash
-npm install -g newman
-```
-
-**2. Start all services:**
+**1. Start all services:**
 
 ```bash
 docker-compose up
 ```
 
-**3. Run the collection:**
+**2. Run the Newman container:**
 
 ```bash
-newman run test/PaymentGateway.EndToEndTests/newman/collection.json \
-  -e test/PaymentGateway.EndToEndTests/newman/env.local.json
+docker compose -f docker-compose.e2e-test.yml run --rm newman-cli
 ```
+
+Newman will pull the Postman collection and environment files from `test/PaymentGateway.EndToEndTests/newman/`, run them against the live stack, and print the results to the console. The container is automatically removed after the run.
 
 ---
 
