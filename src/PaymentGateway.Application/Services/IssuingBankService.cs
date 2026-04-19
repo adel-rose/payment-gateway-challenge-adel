@@ -16,6 +16,8 @@ public class IssuingBankService : IIssuingBankService
 
     public IssuingBankService(IHttpClientService httpClientService, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(httpClientService);
+        
         _httpClientService = httpClientService;
         _configuration = configuration;
     }

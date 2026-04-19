@@ -2,6 +2,7 @@
 using PaymentGateway.Application.Interfaces;
 using System.Data;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.Application.Exceptions;
 using PaymentGateway.Domain.Models;
 
 namespace PaymentGateway.Infrastructure.Repositories
@@ -12,11 +13,15 @@ namespace PaymentGateway.Infrastructure.Repositories
         
         public PaymentRepository(IDapperDbConnection dapperDbConnection, ILogger<string> logger)
         {
+            ArgumentNullException.ThrowIfNull(dapperDbConnection);
+            
             _dapperDbConnection = dapperDbConnection;
         }
         
         public async Task<Payment> SavePaymentAsync(Payment payment, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(payment);
+            
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
                  await db.ExecuteAsync(
@@ -39,6 +44,8 @@ namespace PaymentGateway.Infrastructure.Repositories
 
         public async Task<Payment> RetrievePayment(Guid paymentId, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(paymentId);
+            
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
                 var multi = await db.QueryMultipleAsync(
@@ -47,8 +54,14 @@ namespace PaymentGateway.Infrastructure.Repositories
                     new { paymentId });
 
                 var payment = await multi.ReadFirstOrDefaultAsync<Payment>();
-                var card = await multi.ReadFirstOrDefaultAsync<Card>();
 
+                if (payment is null)
+                {
+                    throw new NotFoundException($"Not payment history found for payment id {paymentId}");
+                }
+                
+                var card = await multi.ReadFirstOrDefaultAsync<Card>();
+                
                 payment.Card = card;
 
                 return payment;

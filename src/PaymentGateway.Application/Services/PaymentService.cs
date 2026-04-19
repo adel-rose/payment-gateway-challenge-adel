@@ -20,10 +20,11 @@ public class PaymentService : IPaymentService
     
     public async Task<Payment> SavePaymentDetails(Card card, PaymentRequestDTO paymentRequestDto ,PaymentResponse paymentResponse, CancellationToken cancellationToken)
     {
-        if (card is null)
-        {
-            throw new ArgumentNullException($"Parameter of type {card.GetType()} was null");
-        }
+        ArgumentNullException.ThrowIfNull(card);
+        
+        ArgumentNullException.ThrowIfNull(paymentRequestDto);
+        
+        ArgumentNullException.ThrowIfNull(paymentResponse);
         
         var payment = paymentRequestDto.ToPayment(paymentResponse);
         

@@ -66,7 +66,8 @@ builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
 // Healch checks
 builder.Services
     .AddHealthChecks()
-    .AddCheck<MsSqlConnectivityHealthcheck>("MSSQL-Connectivity");
+    .AddCheck<MsSqlConnectivityHealthcheck>("MSSQL-Connectivity")
+    .AddCheck<BankSimulatorHealthCheck>("Bank-Simulator-Connectivity");
 
 var app = builder.Build();
 
@@ -76,6 +77,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Not really a middleware in the pipeline - more like route mapping for health checks
 app.UseHealthChecks("/health");
 
 try
