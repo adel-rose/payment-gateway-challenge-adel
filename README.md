@@ -181,10 +181,10 @@ No external dependencies required.
 
 ### Integration Tests
 
-Integration tests spin up the API in-memory using `WebApplicationFactory` but still require the SQL Server container to be running.
+Integration tests spin up the API in-memory using `WebApplicationFactory` but still require the full stack to be running.
 
 ```bash
-docker-compose up payment-gateway-database-mssql payment-gateway-database-init
+docker-compose up
 dotnet test test/PaymentGateway.IntegrationTests
 ```
 
