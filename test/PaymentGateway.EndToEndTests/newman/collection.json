@@ -1,0 +1,194 @@
+{
+  "info": {
+    "_postman_id": "97f02d22-23f1-440c-80f4-79106d4e6302",
+    "name": "PaymentGateway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "3691629"
+  },
+  "item": [
+    {
+      "name": "TestHealthcheck",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Http Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Payment Gateway API is Healthy\", function() {",
+              "    pm.expect(pm.response.text()).to.eql(\"Healthy\")",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{PaymentGatewayAPIURL}}/health",
+          "host": [
+            "{{PaymentGatewayAPIURL}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeclinedPayment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "//example: https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-examples",
+              "pm.test(\"Http Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"For cardnumbers ending with an even number Then payment is declined\", function() {",
+              "    const responseJson = pm.response.json();",
+              "",
+              "    pm.expect(responseJson.status).to.eql(\"Declined\");",
+              "    pm.expect(responseJson.lastFourDigits).to.eql(\"4242\")",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"CardNumber\": \"4242424242424242\",\n    \"Cvv\": \"123\",\n    \"ExpiryMonth\": 12,\n    \"ExpiryYear\": 2030,\n    \"Amount\": 5000,\n    \"Currency\": \"USD\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{PaymentGatewayAPIURL}}/api/paymentgateway/processpayment",
+          "host": [
+            "{{PaymentGatewayAPIURL}}"
+          ],
+          "path": [
+            "api",
+            "paymentgateway",
+            "processpayment"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "SystemError",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "//example: https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-examples",
+              "pm.test(\"Http Status code is 502\", function() {",
+              "    pm.response.to.have.status(502);",
+              "});",
+              "",
+              "pm.test(\"For cardnumbers ending with a 0 Then the issuer fails\", function() {",
+              "    const responseJson = pm.response.json();",
+              "",
+              "    pm.expect(responseJson.error).to.eql(\"Payment request was not completed successfully on issuing bank.\")",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"CardNumber\": \"4242424242424240\",\n    \"Cvv\": \"123\",\n    \"ExpiryMonth\": 12,\n    \"ExpiryYear\": 2030,\n    \"Amount\": 5000,\n    \"Currency\": \"USD\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{PaymentGatewayAPIURL}}/api/paymentgateway/processpayment",
+          "host": [
+            "{{PaymentGatewayAPIURL}}"
+          ],
+          "path": [
+            "api",
+            "paymentgateway",
+            "processpayment"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "SuccessfulPayment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "//example: https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-examples",
+              "pm.test(\"Http Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"For cardnumbers ending with an odd number Then payment is Authorized\", function() {",
+              "    const responseJson = pm.response.json();",
+              "",
+              "    pm.expect(responseJson.status).to.eql(\"Authorized\");",
+              "    pm.expect(responseJson.lastFourDigits).to.eql(\"4243\")",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"CardNumber\": \"4242424242424243\",\n    \"Cvv\": \"123\",\n    \"ExpiryMonth\": 12,\n    \"ExpiryYear\": 2030,\n    \"Amount\": 5000,\n    \"Currency\": \"USD\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{PaymentGatewayAPIURL}}/api/paymentgateway/processpayment",
+          "host": [
+            "{{PaymentGatewayAPIURL}}"
+          ],
+          "path": [
+            "api",
+            "paymentgateway",
+            "processpayment"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

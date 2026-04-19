@@ -1,0 +1,23 @@
+services:
+  newman-cli:
+    container_name: newman-cli
+    image: postman/newman:latest
+    working_dir: /etc/newman
+    volumes:
+      - ./test/PaymentGateway.EndToEndTests/newman:/etc/newman:ro
+    command:
+      [
+        "run",
+        "/etc/newman/collection.json",
+        "--environment",
+        "/etc/newman/env.local.json",
+        "--reporters",
+        "cli",
+        "--verbose"
+      ]
+    networks:
+      - mynet
+
+networks:
+  mynet:
+    name: mynet

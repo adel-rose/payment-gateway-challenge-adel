@@ -1,0 +1,10 @@
+namespace PaymentGateway.Domain.Models;
+
+public class Card
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string CardNumber { get; set; }
+    public int ExpiryMonth { get; set; }
+    public int ExpiryYear { get; set; }
+    public string Cvv { get; set; }
+}

@@ -1,0 +1,88 @@
+services:
+  payment-gateway-database-mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: payment-gateway-database-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Spartan117!"
+    ports:
+      - "1433:1433"
+    networks:
+      - mynet
+        
+  payment-gateway-database-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: payment-gateway-database-init
+    depends_on:
+      - payment-gateway-database-mssql
+    volumes:
+      - ./docker-compose/mssql/scripts.sql:/scripts.sql:ro
+      - ./docker-compose/mssql/seed.sql:/seed.sql:ro
+    entrypoint: >
+      /bin/bash -c "
+      set -e;
+      echo 'Waiting for SQL Server...';
+      for i in {1..60};
+      do
+        /opt/mssql-tools18/bin/sqlcmd -C -S payment-gateway-database-mssql -U sa -P 'Spartan117!' -Q 'SELECT 1' && break;
+        sleep 2;
+      done;
+      echo 'Running db creation script...';
+      ls -l /scripts.sql /seed.sql;
+      /opt/mssql-tools18/bin/sqlcmd -C -S payment-gateway-database-mssql -U sa -P 'Spartan117!' -i /scripts.sql;
+      echo 'Done...';
+      echo 'Running db seed script...';
+      /opt/mssql-tools18/bin/sqlcmd -C -S payment-gateway-database-mssql -U sa -P 'Spartan117!' -i /seed.sql;
+      echo 'Done...';
+      "
+    networks:
+      - mynet
+
+  payment-gateway-seq:
+    # https://hub.docker.com/r/datalust/seq
+    container_name: payment-gateway-seq
+    image: datalust/seq
+    ports:
+      - "5341:80"
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+    networks:
+      - mynet
+        
+  payment-gateway-api:
+    build:
+      context: .
+      dockerfile: src/PaymentGateway.Api/Dockerfile
+    container_name: payment-gateway-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__ContainerConnection: "Server=payment-gateway-database-mssql,1433;Database=MyDb;User Id=sa;Password=Spartan117!;TrustServerCertificate=True;Encrypt=False"
+      Serilog__WriteTo__1__Args__ServerUrl: "http://payment-gateway-seq:80"
+      IssuingBankUrl: "http://bank_simulator:8080/payments"
+    depends_on:
+      - payment-gateway-database-mssql
+      - payment-gateway-seq
+      - bank_simulator
+    ports:
+      - "5001:8080" #port model [outside docker port]:[inside docker port - container only]
+    networks:
+      - mynet
+      
+  bank_simulator:
+    container_name: bank_simulator
+    image: bbyars/mountebank:2.8.1
+    ports:
+      - "2525:2525"
+      - "8080:8080"
+    command: --configfile /imposters/bank_simulator.ejs --allowInjection
+    volumes:
+      - type: bind
+        source: ./imposters
+        target: /imposters
+    networks:
+      - mynet  
+  
+
+networks:
+  mynet:
