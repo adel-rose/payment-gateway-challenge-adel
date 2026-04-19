@@ -76,6 +76,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapOpenApi();
 
 // Not really a middleware in the pipeline - more like route mapping for health checks
 app.UseHealthChecks("/health");
