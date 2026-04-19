@@ -1,6 +1,6 @@
 # Payment Gateway
 
-A .NET 9 API that acts as a payment gateway, allowing merchants to process card payments and retrieve payment details via an acquiring bank simulator.
+A .NET 9 API that acts as a payment gateway, allowing merchants to process card payments and retrieve payment details via an issuing bank simulator.
 
 ---
 
