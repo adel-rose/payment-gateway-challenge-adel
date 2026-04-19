@@ -13,17 +13,22 @@ public class IssuingBankServiceMock
     {
         _issuingBankService = new Mock<IIssuingBankService>();
     }
-
+    
     public IIssuingBankService GetMock()
     {
         _issuingBankService
-            .Setup(x => x.ForwardPaymentRequest(It.Is<IssuingPaymentRequestDTO>(req => req.CardNumber == "4242424242424242"), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new IssuingPaymentResponseDTO
-            {
-                AuthorizationCode = "00",
-                Authorized = true
-            });
+            .Setup(x => x.ForwardPaymentRequest(It.IsAny<IssuingPaymentRequestDTO>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IssuingPaymentRequestDTO requestDTO, CancellationToken cancellationToken) => IssuingBankResponse(requestDTO));
             
         return _issuingBankService.Object;
+    }
+
+    private IssuingPaymentResponseDTO IssuingBankResponse(IssuingPaymentRequestDTO requestDto)
+    {
+        return new IssuingPaymentResponseDTO()
+        {
+            Authorized = !int.IsEvenInteger(Convert.ToInt16(requestDto.CardNumber.Last())),
+            AuthorizationCode = !int.IsEvenInteger(Convert.ToInt16(requestDto.CardNumber.Last())) ? "00" : string.Empty
+        };
     }
 }

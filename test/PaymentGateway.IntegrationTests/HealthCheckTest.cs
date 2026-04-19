@@ -4,6 +4,7 @@ namespace PaymentGateway.IntegrationTests;
 
 public class HealthCheckTest : IClassFixture<PaymentGatewayApiWebAppFactory>
 {
+    
     private HttpClient _httpClient;
 
     public HealthCheckTest(PaymentGatewayApiWebAppFactory factory)
@@ -11,6 +12,9 @@ public class HealthCheckTest : IClassFixture<PaymentGatewayApiWebAppFactory>
         _httpClient = factory.CreateClient();
     }
 
+    /// <summary>
+    /// Tests actual Database and Mocked bank connectivity
+    /// </summary>
     [Fact]
     public async Task Api_Must_Be_Healthy()
     {

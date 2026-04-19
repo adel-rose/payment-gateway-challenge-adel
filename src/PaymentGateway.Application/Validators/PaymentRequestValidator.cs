@@ -30,8 +30,8 @@ public sealed class PaymentRequestValidator : AbstractValidator<PaymentRequestDT
         RuleFor(p => p.Currency)
             .Length(3);
         RuleFor(p => p.Currency)
-            .Must(currency => new List<string>()
-                { Currency.EUR.ToString(), Currency.GBP.ToString(), Currency.USD.ToString() }.Contains(currency));
+            .Must(currency => Enum.GetNames<Currency>().Contains(currency))
+            .WithMessage("Currency must be one of: " + string.Join(", ", Enum.GetNames<Currency>()));
 
         RuleFor(p => p.Amount)
             .NotNull()

@@ -6,8 +6,11 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.IntegrationTests.Mocks;
 
 namespace PaymentGateway.IntegrationTests;
-// following: https://learn.microsoft.com/en-us/aspnet/core/migration/50-to-60-samples?view=aspnetcore-6.0#test-with-webapplicationfactory-or-testserver
-// and:       https://timdeschryver.dev/blog/how-to-test-your-csharp-web-api
+
+/// <summary>
+/// Spins up an in-memory version of our api.
+/// Overrides one specific service registration.
+/// </summary>
 public class PaymentGatewayApiWebAppFactory : WebApplicationFactory<Program>
 {
     // used to mock external dependencies
@@ -18,4 +21,4 @@ public class PaymentGatewayApiWebAppFactory : WebApplicationFactory<Program>
             services.AddScoped<IIssuingBankService>(_ => new IssuingBankServiceMock().GetMock());
         });
     }
-}
+} 

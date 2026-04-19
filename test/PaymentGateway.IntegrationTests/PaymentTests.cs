@@ -35,7 +35,34 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
     {
         var resquest = new PaymentRequestDTO
         {
-            CardNumber = "4242424242424242",
+            CardNumber = "4242424242424241",
+            ExpiryMonth = 12,
+            ExpiryYear = 2030,
+            Cvv = "123",
+            Amount = 1000,
+            Currency = "USD"
+        };
+        var lastFourDigits = resquest.CardNumber[^4..].ToString();
+        
+        var response = await _httpClient.PostAsync("/api/paymentgateway/processpayment", JsonContent.Create(resquest));
+        response.EnsureSuccessStatusCode();
+        
+        var responseString = await response.Content.ReadAsStringAsync(CancellationToken.None);
+        
+        var responseDto = JsonSerializer.Deserialize<PaymentResponseDTO>(responseString, SerializerOptions);
+        
+        responseDto.ShouldNotBeNull();
+        responseDto.Status.ShouldBe("Authorized");
+        responseDto.Amount.ShouldBe(1000);
+        responseDto.LastFourDigits.ShouldBe(lastFourDigits);
+    }
+    
+    [Fact]
+    public async Task Approved_payment_must_be_store_in_db()
+    {
+        var resquest = new PaymentRequestDTO
+        {
+            CardNumber = "4242424242424241",
             ExpiryMonth = 12,
             ExpiryYear = 2030,
             Cvv = "123",
@@ -45,16 +72,21 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
         
         var response = await _httpClient.PostAsync("/api/paymentgateway/processpayment", JsonContent.Create(resquest));
         response.EnsureSuccessStatusCode();
+        
         var responseString = await response.Content.ReadAsStringAsync(CancellationToken.None);
         var responseDto = JsonSerializer.Deserialize<PaymentResponseDTO>(responseString, SerializerOptions);
-        responseDto.ShouldNotBeNull();
         responseDto.Status.ShouldBe("Authorized");
-        responseDto.Amount.ShouldBe(1000);
-        responseDto.LastFourDigits.ShouldBe("4242");
-    }
 
+        var storedPayment = await _paymentRepository.RetrievePayment(responseDto.PaymentRequestId, CancellationToken.None);
+        
+        storedPayment.ShouldNotBeNull();
+        storedPayment.AuthorizationCode.ShouldBe("00"); // we know this since the card used force this behavior
+        storedPayment.Amount.ShouldBe(1000);
+        storedPayment.Status.ShouldBe(PaymentStatus.Authorized);
+    }
+    
     [Fact]
-    public async Task Approved_payment_must_be_store_in_db()
+    public async Task Declined_payment_must_be_store_in_db()
     {
         var resquest = new PaymentRequestDTO
         {
@@ -68,14 +100,18 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
         
         var response = await _httpClient.PostAsync("/api/paymentgateway/processpayment", JsonContent.Create(resquest));
         response.EnsureSuccessStatusCode();
+        
         var responseString = await response.Content.ReadAsStringAsync(CancellationToken.None);
         var responseDto = JsonSerializer.Deserialize<PaymentResponseDTO>(responseString, SerializerOptions);
+        responseDto.Status.ShouldBe("Declined");
+
 
         var storedPayment = await _paymentRepository.RetrievePayment(responseDto.PaymentRequestId, CancellationToken.None);
+        
         storedPayment.ShouldNotBeNull();
-        storedPayment.AuthorizationCode.ShouldBe("00"); // we know this since the card used force this behavior
+        storedPayment.AuthorizationCode.ShouldBe(null); // we know this since the card used force this behavior
         storedPayment.Amount.ShouldBe(1000);
-        storedPayment.Status.ShouldBe(PaymentStatus.Authorized);
+        storedPayment.Status.ShouldBe(PaymentStatus.Declined);
     }
 
     [Fact]
@@ -83,13 +119,15 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
     {
         var resquest = new PaymentRequestDTO
         {
-            CardNumber = "4242424242424242",
+            CardNumber = "4242424242424241",
             ExpiryMonth = 12,
             ExpiryYear = 2030,
             Cvv = "123",
             Amount = 1000,
             Currency = "USD"
         };
+
+        var lastFourDigits = resquest.CardNumber[^4..].ToString();
         
         var response = await _httpClient.PostAsync("/api/paymentgateway/processpayment", JsonContent.Create(resquest));
         response.EnsureSuccessStatusCode();
@@ -103,7 +141,7 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
         
         paymentDto.ShouldNotBeNull();
         paymentDto.Amount.ShouldBe(1000);
-        paymentDto.LastFourDigits.ShouldBe("4242");
+        paymentDto.LastFourDigits.ShouldBe(lastFourDigits);
     }
 
     public void Dispose()
