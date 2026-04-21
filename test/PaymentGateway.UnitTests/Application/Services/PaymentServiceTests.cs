@@ -153,7 +153,7 @@ public class PaymentServiceTests
     {
         var paymentId = Guid.NewGuid();
 
-        _paymentRepositoryMock
+        var result = _paymentRepositoryMock
             .Setup(x => x.RetrievePayment(paymentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Payment)null);
 

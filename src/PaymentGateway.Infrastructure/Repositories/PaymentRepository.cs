@@ -54,13 +54,18 @@ namespace PaymentGateway.Infrastructure.Repositories
                     new { paymentId });
 
                 var payment = await multi.ReadFirstOrDefaultAsync<Payment>();
-
+                
+                var card = await multi.ReadFirstOrDefaultAsync<Card>();
+                
                 if (payment is null)
                 {
                     throw new NotFoundException($"Not payment history found for payment id {paymentId}");
                 }
                 
-                var card = await multi.ReadFirstOrDefaultAsync<Card>();
+                if (card is null)
+                {
+                    throw new NotFoundException($"Not card details found for payment id {paymentId}");
+                }
                 
                 payment.Card = card;
 

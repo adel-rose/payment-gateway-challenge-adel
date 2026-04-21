@@ -29,12 +29,14 @@ namespace PaymentGateway.Api.Controllers
             
             var paymentResponse = await _paymentService.ProcessCardPayment(paymentRequestDto, cancellationToken);
             
-            if (paymentResponse.Status == PaymentStatus.Declined)
-                _logger.Warning($"Payment declined by issuing bank");
-            
             var cardDetails = await _cardService.SaveCardDetailsAsync(paymentRequestDto, paymentResponse, cancellationToken);
             
-            await _paymentService.SavePaymentDetails(cardDetails, paymentRequestDto, paymentResponse, cancellationToken);
+            var payment = await _paymentService.SavePaymentDetails(cardDetails, paymentRequestDto, paymentResponse, cancellationToken);
+            
+            if (paymentResponse.Status == PaymentStatus.Declined)
+                _logger.Warning($"Payment {payment.Id} declined by issuing bank");
+            else
+                _logger.Information($"Payment {payment.Id} authorized by issuing bank");
             
             return Ok(paymentResponse.ToPaymentResponseDto());
             
