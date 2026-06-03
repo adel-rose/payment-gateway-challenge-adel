@@ -11,7 +11,7 @@ namespace PaymentGateway.Infrastructure.Repositories
     {
         private readonly IDapperDbConnection _dapperDbConnection;
         
-        public PaymentRepository(IDapperDbConnection dapperDbConnection, ILogger<string> logger)
+        public PaymentRepository(IDapperDbConnection dapperDbConnection)
         {
             ArgumentNullException.ThrowIfNull(dapperDbConnection);
             

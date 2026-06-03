@@ -40,6 +40,21 @@ CREATE TABLE dbo.Payments
 END
 GO
 
+IF OBJECT_ID(N'dbo.Merchants', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.Merchants
+(
+    Id UNIQUEIDENTIFIER NOT NULL
+        CONSTRAINT PK_Merchants PRIMARY KEY
+        CONSTRAINT DF_Merchants_Id DEFAULT NEWID(),
+    MerchantName VARCHAR(36) NOT NULL,
+    APIKey VARCHAR(255) NULL,
+    CreatedAt DATETIME2 NOT NULL
+        CONSTRAINT DF_Merchants_CreatedAt DEFAULT GETUTCDATE()
+);
+END
+GO
+
 IF NOT EXISTS
 (
     SELECT 1

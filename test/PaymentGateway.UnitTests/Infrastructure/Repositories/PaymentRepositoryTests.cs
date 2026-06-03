@@ -12,13 +12,13 @@ public class PaymentRepositoryTests
     [Fact]
     public void When_IDapperDbConnection_is_null_Then_Throw_ArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new PaymentRepository(null, Mock.Of<ILogger<string>>()));
+        Assert.Throws<ArgumentNullException>(() => new PaymentRepository(null));
     }
 
     [Fact]
     public async Task When_payment_is_null_Then_Throw_ArgumentNullException()
     {
-        _sut = new PaymentRepository(Mock.Of<IDapperDbConnection>(), Mock.Of<ILogger<string>>());
+        _sut = new PaymentRepository(Mock.Of<IDapperDbConnection>());
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.SavePaymentAsync(null, CancellationToken.None));
     }

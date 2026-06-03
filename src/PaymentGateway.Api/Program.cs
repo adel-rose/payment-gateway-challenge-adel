@@ -1,6 +1,8 @@
+using System.ClientModel.Primitives;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using PaymentGateway.Api.Authentication;
 using PaymentGateway.Api.HealthChecks;
 using PaymentGateway.Api.Middleware;
 using PaymentGateway.Application.DTOs;
@@ -21,11 +23,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
 builder.Services.AddSingleton(Log.Logger);
 
 // Add services to the container.
-
+builder.Services.AddAuthentication(ApiKeyAuthenticationOptions.DefaultScheme)
+    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationOptions.DefaultScheme,
+        null);
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -38,6 +45,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<PaymentRequestValidator>();
 // Responsible for the auto-execution of the validation layers
  builder.Services.AddFluentValidationAutoValidation();
 
+// Returning a customized "bad request" object if model state is invalid
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -60,6 +68,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICardRepository, CardRepository>();
 builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
 builder.Services.AddScoped<IIssuingBankService, IssuingBankService>();
 builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
 
@@ -81,6 +90,7 @@ app.MapOpenApi();
 // Not really a middleware in the pipeline - more like route mapping for health checks
 app.UseHealthChecks("/health");
 
+// This block catches every exception that occur not inside, but all around the request pipeline
 try
 {
     app.Logger.LogInformation("Application starting...");

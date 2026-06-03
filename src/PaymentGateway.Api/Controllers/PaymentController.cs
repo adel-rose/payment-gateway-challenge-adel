@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application.DTOs;
 using PaymentGateway.Application.Extensions;
 using PaymentGateway.Application.Interfaces;
@@ -43,6 +44,7 @@ namespace PaymentGateway.Api.Controllers
         }
 
         // [Get]/payments/{id}
+        [Authorize]
         [HttpGet("payment/{id}")]
         public async Task<IActionResult> FindPayment(Guid id, CancellationToken cancellationToken = default)
         {
