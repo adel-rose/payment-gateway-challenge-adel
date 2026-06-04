@@ -42,6 +42,7 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
             Amount = 1000,
             Currency = "USD"
         };
+        
         var lastFourDigits = resquest.CardNumber[^4..].ToString();
         
         var response = await _httpClient.PostAsync("/api/paymentgateway/processpayment", JsonContent.Create(resquest));
@@ -117,6 +118,9 @@ public class PaymentTests : IClassFixture<PaymentGatewayApiWebAppFactory>, IDisp
     [Fact]
     public async Task After_making_payment_it_can_be_retrieved()
     {
+        _httpClient.DefaultRequestHeaders.Add("api_key", "kXjV2PdtlKiQ54iagO9MeCpuhvvj0JhxEQyr0SoYEo0=");
+        _httpClient.DefaultRequestHeaders.Add("merchant_name", "Amazon");
+        
         var resquest = new PaymentRequestDTO
         {
             CardNumber = "4242424242424241",

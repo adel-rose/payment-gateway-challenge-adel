@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Domain.Models;
 using Renci.SshNet;
 
 namespace PaymentGateway.Api.Authentication;
@@ -12,6 +13,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 {
     private readonly ILogger<ApiKeyAuthenticationHandler> _logger;
     private readonly IMerchantRepository _merchantRepository;
+    private const string _invalidMerchantAuthenticationMsg = "Authentication failed, merchant not found";
+    private const string _invalidApiKeyAuthenticationMsg = "Authentication failed, invalid API key";
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
@@ -34,15 +37,28 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         
         //2. Lookup the merchant from database
         var merchant = await _merchantRepository.FindByName(merchantName);
-        
-        if (merchant is null)
-            return AuthenticateResult.Fail("Merchant not found");
 
+        if (merchant is null)
+        {
+            _logger.LogWarning(_invalidMerchantAuthenticationMsg);
+            return AuthenticateResult.Fail(_invalidMerchantAuthenticationMsg);
+        }
+        
         //3. Verify keys
         if (!BCrypt.Net.BCrypt.Verify(apiKey, merchant.APIKey))
-            return AuthenticateResult.Fail("Invalid API key");
-
+        {
+            _logger.LogWarning(_invalidApiKeyAuthenticationMsg);
+            return AuthenticateResult.Fail(_invalidApiKeyAuthenticationMsg);
+        }
+        
         //4. Build merchant identity with claims
+        var ticket = GenerateAuthenticationTicket(merchant);
+
+        return AuthenticateResult.Success(ticket);
+    }
+
+    private AuthenticationTicket GenerateAuthenticationTicket(Merchant merchant)
+    {
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, merchant.Id.ToString()),
@@ -52,10 +68,9 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
-
-        return AuthenticateResult.Success(ticket);
+        return ticket;
     }
-    
+
     // var apiKeytest = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     // var hashedKey = BCrypt.Net.BCrypt.HashPassword(apiKeytest);
     //     

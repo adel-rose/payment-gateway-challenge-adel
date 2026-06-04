@@ -11,11 +11,11 @@ namespace PaymentGateway.Api.Controllers
     [Route("api/paymentgateway")]
     public class PaymentController : ControllerBase
     {
-        private readonly Serilog.ILogger _logger;
+        private readonly ILogger<PaymentController> _logger;
         private readonly IPaymentService _paymentService;
         private readonly ICardService _cardService;
         
-        public PaymentController(Serilog.ILogger logger, IPaymentService paymentService, ICardService cardService)
+        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, ICardService cardService)
         {
             _logger = logger;
             _paymentService = paymentService;
@@ -35,9 +35,9 @@ namespace PaymentGateway.Api.Controllers
             var payment = await _paymentService.SavePaymentDetails(cardDetails, paymentRequestDto, paymentResponse, cancellationToken);
             
             if (paymentResponse.Status == PaymentStatus.Declined)
-                _logger.Warning($"Payment {payment.Id} declined by issuing bank");
+                _logger.LogWarning($"Payment {payment.Id} declined by issuing bank");
             else
-                _logger.Information($"Payment {payment.Id} authorized by issuing bank");
+                _logger.LogInformation($"Payment {payment.Id} authorized by issuing bank");
             
             return Ok(paymentResponse.ToPaymentResponseDto());
             
